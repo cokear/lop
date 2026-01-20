@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "commonjs",
   "main": "index.js",
+  "bin": "index.js",
   "scripts": {
     "start": "node index.js",
     "build": "pkg . --config pkg.json --compress GZip --output dist/tools"
