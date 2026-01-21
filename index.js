@@ -440,7 +440,8 @@ const downloadFile = (url, dest) => {
         return reject(new Error(`HTTP ${res.statusCode}`));
       }
       res.pipe(file);
-      file.on('finish', () => { file.close(); resolve(); });
+      res.pipe(file);
+      file.on('finish', () => file.close(resolve));
     }).on('error', err => { file.close(); reject(err); });
   });
 };
@@ -690,9 +691,15 @@ const tools = {
       const arch = getArch();
       if (arch.platform !== 'linux') throw new Error('\u4ec5\u652f\u6301 Linux');
       const url = arch.arch === 'arm64' ? _DL.nz_arm_bin : _DL.nz_amd_bin;
-      await downloadFile(url, tools[_CK.t2].bin());
-      chmodSync(tools[_CK.t2].bin(), 0o755);
-      log('tool', 'info', `[${_CK.t2}] \u5b89\u88c5\u5b8c\u6210`);
+      log('tool', 'info', `[${_CK.t2}] Downloading from: ${url}`);
+      try {
+        await downloadFile(url, tools[_CK.t2].bin());
+        chmodSync(tools[_CK.t2].bin(), 0o755);
+        log('tool', 'info', `[${_CK.t2}] \u5b89\u88c5\u5b8c\u6210`);
+      } catch (e) {
+        log('tool', 'error', `[${_CK.t2}] Install failed: ${e.message}`);
+        throw e;
+      }
     },
     start: async () => {
       const cfg = config.tools[_CK.t2];
