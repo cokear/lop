@@ -1533,6 +1533,16 @@ const app = (req, res) => {
     return;
   }
 
+  if (path === '/api/system/config' && method === 'POST') {
+    if (!auth()) return sendJson({ error: '\u672a\u6388\u6743' }, 401);
+    parseBody().then(body => {
+      if (body.webPort !== undefined) config.webPort = parseInt(body.webPort) || 0;
+      saveConfig();
+      sendJson({ success: true });
+    });
+    return;
+  }
+
   if (path === '/api/tools' && method === 'GET') {
     if (!auth()) return sendJson({ error: '\u672a\u6388\u6743' }, 401);
     const status = {};
