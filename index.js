@@ -622,7 +622,16 @@ const tools = {
       const genConfig = genS1Cfg(config.tools[_CK.t1]);
       writeEncryptedConfig(tools[_CK.t1].cfg(), JSON.stringify(genConfig, null, 2));
       const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t1 + '-plain', 'cfg') + '.json');
-      writeFileSync(plainCfg, readEncryptedConfig(tools[_CK.t1].cfg()));
+      const decryptedContent = readEncryptedConfig(tools[_CK.t1].cfg());
+
+      const { openSync, writeSync, fsyncSync, closeSync } = require('fs');
+      const fd = openSync(plainCfg, 'w');
+      writeSync(fd, decryptedContent);
+      fsyncSync(fd);
+      closeSync(fd);
+
+      await new Promise(r => setTimeout(r, 200)); // Short delay to ensure FS consistency
+
       try {
         await startToolProcess(_CK.t1, tools[_CK.t1].bin(), ['run', '-c', plainCfg]);
         setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 2000);
@@ -875,7 +884,20 @@ const tools = {
       const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t3, 'cfg') + '.yaml');
       writeEncryptedConfig(cfgPath, JSON.stringify(s3Cfg, null, 2));
       const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
-      writeFileSync(plainCfg, readEncryptedConfig(cfgPath));
+
+      const decryptedContent = readEncryptedConfig(cfgPath);
+      const { openSync, writeSync, fsyncSync, closeSync } = require('fs');
+      try {
+        const fd = openSync(plainCfg, 'w');
+        writeSync(fd, decryptedContent);
+        fsyncSync(fd);
+        closeSync(fd);
+      } catch (e) {
+        writeFileSync(plainCfg, decryptedContent);
+      }
+
+      await new Promise(r => setTimeout(r, 500));
+
       try {
         await startToolProcess(_CK.t3, binPath, ['--config', plainCfg]);
         setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 2000);
