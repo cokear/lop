@@ -1544,19 +1544,26 @@ const app = (req, res) => {
     return;
   }
 
-  // 主页 - 返回工具箱UI
+  // 主页 - 优先返回工具箱UI (public/index.html)
   if (path === '/' && method === 'GET') {
-    const publicDir = join(ROOT, 'public');
-    const filePath = join(publicDir, 'index.html');
-    if (existsSync(filePath)) {
-      try {
-        const content = readFileSync(filePath);
-        res.setHeader('Content-Type', 'text/html');
+    try {
+      const publicDir = join(ROOT, 'public');
+      const indexPath = join(publicDir, 'index.html');
+      log('http', 'debug', `ROOT: ${ROOT}, looking for: ${indexPath}`);
+
+      if (existsSync(indexPath)) {
+        const content = readFileSync(indexPath);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.end(content);
+        log('http', 'info', 'Served public/index.html');
         return;
-      } catch { }
+      } else {
+        log('http', 'warn', `public/index.html not found at: ${indexPath}`);
+      }
+    } catch (err) {
+      log('http', 'error', `Error serving index.html: ${err.message}`);
     }
-    // 如果找不到，返回404
+    // 降级：返回404而不是管理页面
     res.writeHead(404);
     res.end('Not Found');
     return;
