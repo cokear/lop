@@ -1544,10 +1544,10 @@ const app = (req, res) => {
     return;
   }
 
-  // 静态文件服务 (CSS, JS, 图片等)
-  if (!path.startsWith('/api') && path !== '/') {
+  // 静态文件服务 (包括主页)
+  if (!path.startsWith('/api')) {
     const publicDir = join(ROOT, 'public');
-    const filePath = join(publicDir, path);
+    const filePath = join(publicDir, path === '/' ? 'index.html' : path);
     // 防止目录遍历
     if (filePath.startsWith(publicDir) && existsSync(filePath)) {
       try {
