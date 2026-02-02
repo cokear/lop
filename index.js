@@ -527,7 +527,7 @@ const tools = {
       if (cfg.mode === 'quick') {
         args = [_DL.cf_cmd, '--url', `${cfg.protocol || 'http'}://localhost:${cfg.localPort || 8001}`];
       } else {
-        const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t0, 'cfg'));
+        const cfgPath = join(tmpdir(), getRandomFileName(_CK.t0, 'cfg'));
         writeEncryptedConfig(cfgPath, cfg.token);
         const decryptedToken = readEncryptedConfig(cfgPath);
         args = [_DL.cf_cmd, '--no-autoupdate', 'run', '--token', decryptedToken];
@@ -621,19 +621,30 @@ const tools = {
         }
       }
       const genConfig = genS1Cfg(config.tools[_CK.t1]);
-      writeEncryptedConfig(tools[_CK.t1].cfg(), JSON.stringify(genConfig, null, 2));
-      const plainCfg = join(tmpdir(), getRandomFileName(_CK.t1 + '-plain', 'cfg') + '.json');
-      const decryptedContent = readEncryptedConfig(tools[_CK.t1].cfg());
+      const encCfgPath = tools[_CK.t1].cfg();
+      log('tool', 'debug', `[${_CK.t1}] Writing encrypted config to: ${encCfgPath}`);
+      writeEncryptedConfig(encCfgPath, JSON.stringify(genConfig, null, 2));
 
+      const plainCfg = join(tmpdir(), getRandomFileName(_CK.t1 + '-plain', 'cfg') + '.json');
+      const decryptedContent = readEncryptedConfig(encCfgPath);
+
+      if (!decryptedContent) {
+        log('tool', 'error', `[${_CK.t1}] Failed to decrypt config from ${encCfgPath}`);
+        throw new Error('Failed to read/decrypt config file');
+      }
+
+      log('tool', 'debug', `[${_CK.t1}] Writing plain config to: ${plainCfg}`);
       const { openSync, writeSync, fsyncSync, closeSync } = require('fs');
       const fd = openSync(plainCfg, 'w');
       writeSync(fd, decryptedContent);
       fsyncSync(fd);
       closeSync(fd);
 
+      log('tool', 'debug', `[${_CK.t1}] Config file ready at: ${plainCfg}`);
       await new Promise(r => setTimeout(r, 200)); // Short delay to ensure FS consistency
 
       try {
+        log('tool', 'debug', `[${_CK.t1}] Starting with config: ${plainCfg}`);
         await startToolProcess(_CK.t1, tools[_CK.t1].bin(), ['run', '-c', plainCfg]);
         setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 2000);
 
