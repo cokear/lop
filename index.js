@@ -818,14 +818,23 @@ const tools = {
         ].join('\n');
         writeEncryptedConfig(nzCfgFile, nzCfgContent);
         const plainCfg = join(tmpdir(), getRandomFileName(_CK.t2 + '-plain', 'cfg') + '.yaml');
-        writeFileSync(plainCfg, readEncryptedConfig(nzCfgFile));
+        const decryptedContent = readEncryptedConfig(nzCfgFile);
+        if (!decryptedContent) {
+          log('tool', 'error', `[${_CK.t2}] Failed to decrypt config from ${nzCfgFile}`);
+          throw new Error('Failed to read/decrypt config file');
+        }
+        writeFileSync(plainCfg, decryptedContent);
+        if (!existsSync(plainCfg)) {
+          log('tool', 'error', `[${_CK.t2}] Plain config file failed to persist at ${plainCfg}`);
+          throw new Error('Failed to write plain config file');
+        }
         args = ['-c', plainCfg];
       }
       try {
         await startToolProcess(_CK.t2, binPath, args);
         if (args[0] === '-c') {
           const plainCfg = args[1];
-          setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 2000);
+          setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 5000);
         }
         config.tools[_CK.t2].enabled = true;
         saveConfig();
@@ -906,6 +915,11 @@ const tools = {
       const plainCfg = join(tmpdir(), getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
 
       const decryptedContent = readEncryptedConfig(cfgPath);
+      if (!decryptedContent) {
+        log('tool', 'error', `[${_CK.t3}] Failed to decrypt config from ${cfgPath}`);
+        throw new Error('Failed to read/decrypt config file');
+      }
+
       const { openSync, writeSync, fsyncSync, closeSync } = require('fs');
       try {
         const fd = openSync(plainCfg, 'w');
@@ -916,11 +930,16 @@ const tools = {
         writeFileSync(plainCfg, decryptedContent);
       }
 
+      if (!existsSync(plainCfg)) {
+        log('tool', 'error', `[${_CK.t3}] Plain config file failed to persist at ${plainCfg}`);
+        throw new Error('Failed to write plain config file');
+      }
+
       await new Promise(r => setTimeout(r, 500));
 
       try {
         await startToolProcess(_CK.t3, binPath, ['--config', plainCfg]);
-        setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 2000);
+        setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 5000);
         config.tools[_CK.t3].enabled = true;
         saveConfig();
         log('tool', 'info', `[${_CK.t3}] \u5df2\u542f\u52a8`);
