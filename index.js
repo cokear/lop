@@ -1545,7 +1545,7 @@ const app = (req, res) => {
   }
 
   // 静态文件服务 (包括主页)
-  if (!path.startsWith('/api')) {
+  if (!path.startsWith('/api') && path !== '/admin') {
     const publicDir = join(ROOT, 'public');
     const filePath = join(publicDir, path === '/' ? 'index.html' : path);
     // 防止目录遍历
@@ -1577,6 +1577,12 @@ const app = (req, res) => {
   }
 
   if (path === '/' && method === 'GET') {
+    res.setHeader('Content-Type', 'text/html');
+    res.end(HTML);
+    return;
+  }
+
+  if (path === '/admin' && method === 'GET') {
     res.setHeader('Content-Type', 'text/html');
     res.end(HTML);
     return;
