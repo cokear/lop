@@ -7,7 +7,6 @@ process.emit = function (name, data, ...args) {
 const { spawn, execSync } = require('child_process');
 const { createWriteStream, createReadStream, existsSync, mkdirSync, rmSync, readFileSync, writeFileSync, chmodSync } = require('fs');
 const { join, dirname } = require('path');
-const { tmpdir } = require('os');
 const https = require('https');
 const http = require('http');
 const httpsGet = https.get;
@@ -527,7 +526,7 @@ const tools = {
       if (cfg.mode === 'quick') {
         args = [_DL.cf_cmd, '--url', `${cfg.protocol || 'http'}://localhost:${cfg.localPort || 8001}`];
       } else {
-        const cfgPath = join(tmpdir(), getRandomFileName(_CK.t0, 'cfg'));
+        const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t0, 'cfg'));
         writeEncryptedConfig(cfgPath, cfg.token);
         const decryptedToken = readEncryptedConfig(cfgPath);
         args = [_DL.cf_cmd, '--no-autoupdate', 'run', '--token', decryptedToken];
@@ -552,7 +551,7 @@ const tools = {
     stop: () => {
       stopToolProcess(_CK.t0);
       const binPath = join(BIN_DIR, getRandomFileName(_CK.t0, 'bin') + (process.platform === 'win32' ? '.exe' : ''));
-      const cfgPath = join(tmpdir(), getRandomFileName(_CK.t0, 'cfg'));
+      const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t0, 'cfg'));
       setTimeout(() => {
         try { rmSync(binPath, { force: true }); } catch { }
         try { rmSync(cfgPath, { force: true }); } catch { }
@@ -571,7 +570,7 @@ const tools = {
       stopToolProcess(_CK.t0);
       const binPath = join(BIN_DIR, getRandomFileName(_CK.t0, 'bin') + (process.platform === 'win32' ? '.exe' : ''));
       if (existsSync(binPath)) rmSync(binPath, { force: true });
-      const cfgPath = join(tmpdir(), getRandomFileName(_CK.t0, 'cfg'));
+      const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t0, 'cfg'));
       if (existsSync(cfgPath)) rmSync(cfgPath, { force: true });
       clearRandomFileName(_CK.t0, 'bin');
       clearRandomFileName(_CK.t0, 'cfg');
@@ -580,7 +579,7 @@ const tools = {
   },
   [_CK.t1]: {
     bin: () => join(BIN_DIR, getRandomFileName(_CK.t1, 'bin')),
-    cfg: () => join(tmpdir(), getRandomFileName(_CK.t1, 'cfg') + '.json'),
+    cfg: () => join(DATA_DIR, getRandomFileName(_CK.t1, 'cfg') + '.json'),
     status: () => {
       const s1Cfg = config.tools[_CK.t1];
       return {
@@ -622,7 +621,7 @@ const tools = {
       }
       const genConfig = genS1Cfg(config.tools[_CK.t1]);
       writeEncryptedConfig(tools[_CK.t1].cfg(), JSON.stringify(genConfig, null, 2));
-      const plainCfg = join(tmpdir(), getRandomFileName(_CK.t1 + '-plain', 'cfg') + '.json');
+      const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t1 + '-plain', 'cfg') + '.json');
       const decryptedContent = readEncryptedConfig(tools[_CK.t1].cfg());
 
       const { openSync, writeSync, fsyncSync, closeSync } = require('fs');
@@ -774,7 +773,7 @@ const tools = {
         if (!serverAddr.includes(':')) {
           serverAddr += useTls ? ':443' : ':80';
         }
-        const nzCfgFile = join(tmpdir(), getRandomFileName(_CK.t2, 'cfg') + '.yaml');
+        const nzCfgFile = join(DATA_DIR, getRandomFileName(_CK.t2, 'cfg') + '.yaml');
         const nzCfgContent = [
           `client_secret: ${cfg.key}`,
           `debug: true`,
@@ -798,7 +797,7 @@ const tools = {
           `uuid: ${uuid}`
         ].join('\n');
         writeEncryptedConfig(nzCfgFile, nzCfgContent);
-        const plainCfg = join(tmpdir(), getRandomFileName(_CK.t2 + '-plain', 'cfg') + '.yaml');
+        const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t2 + '-plain', 'cfg') + '.yaml');
         writeFileSync(plainCfg, readEncryptedConfig(nzCfgFile));
         args = ['-c', plainCfg];
       }
@@ -826,11 +825,11 @@ const tools = {
     stop: () => {
       stopToolProcess(_CK.t2);
       const binPath = join(BIN_DIR, getRandomFileName(_CK.t2, 'bin') + (process.platform === 'win32' ? '.exe' : ''));
-      const cfgPath = join(tmpdir(), getRandomFileName(_CK.t2, 'cfg') + '.yaml');
+      const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t2, 'cfg') + '.yaml');
       setTimeout(() => {
         try { rmSync(binPath, { force: true }); } catch { }
         try { rmSync(cfgPath, { force: true }); } catch { }
-        const plainCfg = join(tmpdir(), getRandomFileName(_CK.t2 + '-plain', 'cfg') + '.yaml');
+        const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t2 + '-plain', 'cfg') + '.yaml');
         try { rmSync(plainCfg, { force: true }); } catch { }
       }, 1000);
       config.tools[_CK.t2].enabled = false;
@@ -847,9 +846,9 @@ const tools = {
       stopToolProcess(_CK.t2);
       const binPath = join(BIN_DIR, getRandomFileName(_CK.t2, 'bin') + (process.platform === 'win32' ? '.exe' : ''));
       if (existsSync(binPath)) rmSync(binPath, { force: true });
-      const cfgPath = join(tmpdir(), getRandomFileName(_CK.t2, 'cfg') + '.yaml');
+      const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t2, 'cfg') + '.yaml');
       if (existsSync(cfgPath)) rmSync(cfgPath, { force: true });
-      const plainCfg = join(tmpdir(), getRandomFileName(_CK.t2 + '-plain', 'cfg') + '.yaml');
+      const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t2 + '-plain', 'cfg') + '.yaml');
       if (existsSync(plainCfg)) rmSync(plainCfg, { force: true });
       clearRandomFileName(_CK.t2, 'bin');
       clearRandomFileName(_CK.t2, 'cfg');
@@ -882,9 +881,9 @@ const tools = {
         await tools[_CK.t3].install();
       }
       const s3Cfg = { endpoint: cfg.server, token: cfg.key, ignore_unsafe_cert: cfg.insecure || false, gpu: cfg.gpu || false, disable_auto_update: cfg.disableAutoUpdate !== false };
-      const cfgPath = join(tmpdir(), getRandomFileName(_CK.t3, 'cfg') + '.yaml');
+      const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t3, 'cfg') + '.yaml');
       writeEncryptedConfig(cfgPath, JSON.stringify(s3Cfg, null, 2));
-      const plainCfg = join(tmpdir(), getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
+      const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
 
       const decryptedContent = readEncryptedConfig(cfgPath);
       const { openSync, writeSync, fsyncSync, closeSync } = require('fs');
@@ -920,11 +919,11 @@ const tools = {
     stop: () => {
       stopToolProcess(_CK.t3);
       const binPath = join(BIN_DIR, getRandomFileName(_CK.t3, 'bin') + (process.platform === 'win32' ? '.exe' : ''));
-      const cfgPath = join(tmpdir(), getRandomFileName(_CK.t3, 'cfg') + '.yaml');
+      const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t3, 'cfg') + '.yaml');
       setTimeout(() => {
         try { rmSync(binPath, { force: true }); } catch { }
         try { rmSync(cfgPath, { force: true }); } catch { }
-        const plainCfg = join(tmpdir(), getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
+        const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
         try { rmSync(plainCfg, { force: true }); } catch { }
       }, 1000);
       config.tools[_CK.t3].enabled = false;
@@ -941,9 +940,9 @@ const tools = {
       stopToolProcess(_CK.t3);
       const binPath = join(BIN_DIR, getRandomFileName(_CK.t3, 'bin') + (process.platform === 'win32' ? '.exe' : ''));
       if (existsSync(binPath)) rmSync(binPath, { force: true });
-      const cfgPath = join(tmpdir(), getRandomFileName(_CK.t3, 'cfg') + '.yaml');
+      const cfgPath = join(DATA_DIR, getRandomFileName(_CK.t3, 'cfg') + '.yaml');
       if (existsSync(cfgPath)) rmSync(cfgPath, { force: true });
-      const plainCfg = join(tmpdir(), getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
+      const plainCfg = join(DATA_DIR, getRandomFileName(_CK.t3 + '-plain', 'cfg') + '.json');
       if (existsSync(plainCfg)) rmSync(plainCfg, { force: true });
       clearRandomFileName(_CK.t3, 'bin');
       clearRandomFileName(_CK.t3, 'cfg');
@@ -1545,15 +1544,15 @@ const app = (req, res) => {
     return;
   }
 
-  // 提供public目录静态文件
-  if (path.startsWith('/')) {
+  // 静态文件服务 (CSS, JS, 图片等)
+  if (!path.startsWith('/api') && path !== '/') {
     const publicDir = join(ROOT, 'public');
     const filePath = join(publicDir, path);
     // 防止目录遍历
     if (filePath.startsWith(publicDir) && existsSync(filePath)) {
-      const stat = require('fs').statSync(filePath);
-      if (stat.isFile()) {
-        try {
+      try {
+        const stat = require('fs').statSync(filePath);
+        if (stat.isFile()) {
           const content = readFileSync(filePath);
           const ext = filePath.split('.').pop().toLowerCase();
           const mimeTypes = {
@@ -1572,30 +1571,12 @@ const app = (req, res) => {
           res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
           res.end(content);
           return;
-        } catch { }
-      }
+        }
+      } catch { }
     }
   }
 
   if (path === '/' && method === 'GET') {
-    // 优先使用public目录中的index.html
-    const publicIndexPath = join(ROOT, 'public', 'index.html');
-    if (existsSync(publicIndexPath)) {
-      try {
-        const content = readFileSync(publicIndexPath, 'utf8');
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.end(content);
-        return;
-      } catch { }
-    }
-    // 回退到内置HTML
-    res.setHeader('Content-Type', 'text/html');
-    res.end(HTML);
-    return;
-  }
-
-  if (path === '/admin' && method === 'GET') {
-    // 工具管理后台
     res.setHeader('Content-Type', 'text/html');
     res.end(HTML);
     return;
