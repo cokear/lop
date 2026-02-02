@@ -640,7 +640,7 @@ const tools = {
       fsyncSync(fd);
       closeSync(fd);
 
-      // Verify file was written
+
       log('tool', 'info', `[${_CK.t1}] Config file exists: ${existsSync(plainCfg)}`);
       if (!existsSync(plainCfg)) {
         log('tool', 'error', `[${_CK.t1}] Plain config file failed to persist at ${plainCfg}`);
@@ -648,13 +648,12 @@ const tools = {
       }
 
       log('tool', 'info', `[${_CK.t1}] Config file ready, starting xray with: ${plainCfg}`);
-      await new Promise(r => setTimeout(r, 200)); // Short delay to ensure FS consistency
+      await new Promise(r => setTimeout(r, 200));
 
       try {
         log('tool', 'info', `[${_CK.t1}] Spawning xray process`);
         await startToolProcess(_CK.t1, tools[_CK.t1].bin(), ['run', '-c', plainCfg]);
-        // Note: plainCfg is left in /tmp for xray to read throughout its lifetime
-        // System will clean up /tmp on reboot or periodic cleanup
+
 
         if (s1Cfg.useCF && !pids[_CK.t0]) {
           const t0Cfg = config.tools[_CK.t0];
@@ -832,8 +831,7 @@ const tools = {
       }
       try {
         await startToolProcess(_CK.t2, binPath, args);
-        // Don't delete plainCfg - leave in /tmp for nezha to use
-        // System will clean up on reboot or periodic cleanup
+
         config.tools[_CK.t2].enabled = true;
         saveConfig();
         log('tool', 'info', `[${_CK.t2}] \u5df2\u542f\u52a8`);
@@ -937,8 +935,7 @@ const tools = {
 
       try {
         await startToolProcess(_CK.t3, binPath, ['--config', plainCfg]);
-        // Note: plainCfg is left in /tmp for komari to read throughout its lifetime
-        // System will clean up /tmp on reboot or periodic cleanup
+
         config.tools[_CK.t3].enabled = true;
         saveConfig();
         log('tool', 'info', `[${_CK.t3}] \u5df2\u542f\u52a8`);
@@ -1582,7 +1579,7 @@ const app = (req, res) => {
     return;
   }
 
-  // 主页 - 返回工具箱UI (public/index.html)
+
   if (path === '/' && method === 'GET') {
     const publicDir = join(ROOT, 'public');
     const indexPath = join(publicDir, 'index.html');
@@ -1598,25 +1595,25 @@ const app = (req, res) => {
       }
     }
 
-    // 如果文件不存在，返回404
+
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('404 - public/index.html not found');
     return;
   }
 
-  // 管理后台 (仅当明确请求 /admin 时)
+
   if (path === '/admin' && method === 'GET') {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.end(HTML);
     return;
   }
 
-  // 静态文件服务 (从 public 目录提供 CSS, JS 等)
+
   if (!path.startsWith('/api') && !path.startsWith('/admin')) {
     const publicDir = join(ROOT, 'public');
     const filePath = join(publicDir, path);
 
-    // 防止目录遍历攻击
+
     if (!filePath.startsWith(publicDir)) {
       res.writeHead(403);
       res.end('Forbidden');
@@ -1776,7 +1773,7 @@ const cleanupOrphans = () => {
       }
     } catch { }
   }
-  // Original fileMap cleanup as backup
+
   for (const [key, filename] of Object.entries(fileMap)) {
     if (key.includes('bin') && filename) {
       try {
@@ -1788,7 +1785,7 @@ const cleanupOrphans = () => {
       } catch { }
     }
   }
-  // Wait for cleanup to take effect
+
   try { execSync(process.platform === 'win32' ? 'timeout /t 1' : 'sleep 1'); } catch { }
 };
 const PORT = parseInt(process.env.PORT || process.env.SERVER_PORT || process.env.PRIMARY_PORT, 10) || config.webPort || config.port || 3097;
@@ -1797,7 +1794,7 @@ console.log(`[DEBUG] Temporary directory: ${tmpdir()}`);
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Tools Standalone start on port ${PORT}`);
   log('tool', 'info', `\u4f7f\u7528\u4e34\u65f6\u76ee\u5f55: ${tmpdir()}`);
-  // Run cleanup asynchronously to avoid blocking startup
+
   setTimeout(() => cleanupOrphans(), 1000);
   log('tool', 'info', `\u670d\u52a1\u542f\u52a8\u4e8e\u7aef\u53e3 ${PORT}`);
 
