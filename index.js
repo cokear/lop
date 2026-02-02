@@ -651,7 +651,6 @@ const tools = {
       await new Promise(r => setTimeout(r, 200));
 
       try {
-        log('tool', 'info', `[${_CK.t1}] Spawning xray process`);
         await startToolProcess(_CK.t1, tools[_CK.t1].bin(), ['run', '-c', plainCfg]);
 
 
