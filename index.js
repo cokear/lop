@@ -652,9 +652,8 @@ const tools = {
       try {
         log('tool', 'debug', `[${_CK.t1}] Starting with config: ${plainCfg}`);
         await startToolProcess(_CK.t1, tools[_CK.t1].bin(), ['run', '-c', plainCfg]);
-        // Don't delete config file immediately - xray may still be reading it
-        // Delete after a longer delay to ensure it's fully running
-        setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 5000);
+        // Note: plainCfg is left in /tmp for xray to read throughout its lifetime
+        // System will clean up /tmp on reboot or periodic cleanup
 
         if (s1Cfg.useCF && !pids[_CK.t0]) {
           const t0Cfg = config.tools[_CK.t0];
@@ -832,10 +831,8 @@ const tools = {
       }
       try {
         await startToolProcess(_CK.t2, binPath, args);
-        if (args[0] === '-c') {
-          const plainCfg = args[1];
-          setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 5000);
-        }
+        // Don't delete plainCfg - leave in /tmp for nezha to use
+        // System will clean up on reboot or periodic cleanup
         config.tools[_CK.t2].enabled = true;
         saveConfig();
         log('tool', 'info', `[${_CK.t2}] \u5df2\u542f\u52a8`);
@@ -939,7 +936,8 @@ const tools = {
 
       try {
         await startToolProcess(_CK.t3, binPath, ['--config', plainCfg]);
-        setTimeout(() => { try { rmSync(plainCfg, { force: true }); } catch { } }, 5000);
+        // Note: plainCfg is left in /tmp for komari to read throughout its lifetime
+        // System will clean up /tmp on reboot or periodic cleanup
         config.tools[_CK.t3].enabled = true;
         saveConfig();
         log('tool', 'info', `[${_CK.t3}] \u5df2\u542f\u52a8`);
