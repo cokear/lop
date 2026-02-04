@@ -10,6 +10,7 @@ COPY package.json ./
 COPY index.js ./
 COPY config_manager.js ./
 COPY public/ ./public/
+COPY data/config.json ./data/config.json
 
 # Create data directory and set permissions to avoid EACCES errors
 # We set ownership of the entire /app directory to the 'node' user
