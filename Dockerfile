@@ -8,7 +8,7 @@ COPY package.json ./
 
 # Copy source code
 COPY index.js ./
-COPY config_manager.js ./
+
 COPY public/ ./public/
 COPY data/config.json ./data/config.json
 
